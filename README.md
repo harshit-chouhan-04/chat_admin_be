@@ -57,7 +57,7 @@ $ npm run start:prod
 
 Swagger UI is available at `http://localhost:3000/api-docs` after the app starts.
 
-Use `POST /auth/login` to obtain an admin JWT, then send it as `Authorization: Bearer <token>` for protected routes.
+Use `POST /api/auth/login` to obtain an admin JWT, then send it as `Authorization: Bearer <token>` for all other `/api` routes. Every API endpoint is protected by default, and only authenticated active admins can access them.
 
 ## Run tests
 
