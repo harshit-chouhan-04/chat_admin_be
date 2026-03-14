@@ -11,6 +11,19 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.setGlobalPrefix('api');
+
+  const corsOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: corsOrigins.length > 0 ? corsOrigins : true,
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    optionsSuccessStatus: 204,
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Chat Admin API')
@@ -24,4 +37,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();
