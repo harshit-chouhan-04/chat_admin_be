@@ -169,7 +169,10 @@ export function stagePromptGuidance(params: {
   ];
 }
 
-export function violatesStage(replyText: string, stage: IntimacyStage): boolean {
+export function violatesStage(
+  replyText: string,
+  stage: IntimacyStage,
+): boolean {
   const lower = replyText.toLowerCase();
   const hasExplicit = EXPLICIT_TERMS.some((term) => lower.includes(term));
 
@@ -217,4 +220,3 @@ export function stageSafeFallback(params: {
 
   return `[Scene] Hawa mein nazdeeki ka ehsaas hai, conversation naturally deep ho rahi hai.\n${params.characterName}: "Mujhe tumhari honesty pasand aa rahi hai... isi warmth ke saath aage badhte hain."`;
 }
-

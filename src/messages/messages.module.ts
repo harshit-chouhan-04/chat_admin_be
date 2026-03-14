@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MessagesController } from './messages.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Message, MessageSchema } from './entities/message.entites';
-import { MessagesService } from './providers/messages.service';
+import { User, UserSchema } from 'src/users/entities/user.entity';
+import { MessagesController } from './messages.controller';
+import { Message, MessageSchema } from './entities/message.entity';
 import {
   Conversation,
   ConversationSchema,
 } from 'src/conversations/entities/conversation.entity';
-import { User, UserSchema } from 'src/users/entities/user.entity';
+import { MessagesService } from './providers/messages.service';
 
 @Module({
   imports: [
@@ -19,6 +19,6 @@ import { User, UserSchema } from 'src/users/entities/user.entity';
   ],
   controllers: [MessagesController],
   providers: [MessagesService],
-  exports: [MongooseModule, MessagesService],
+  exports: [MessagesService, MongooseModule],
 })
 export class MessagesModule {}

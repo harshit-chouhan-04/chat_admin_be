@@ -1,27 +1,26 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
+import { HydratedDocument } from 'mongoose';
+
+export type CategoryDocument = HydratedDocument<Category>;
 
 @Schema({ timestamps: true })
 export class Category {
-  @ApiProperty({ example: 'Romantic' })
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, trim: true })
   name: string;
 
-  @ApiProperty({ example: 'romantic' })
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, lowercase: true, trim: true })
   slug: string;
 
-  @ApiProperty({ example: false })
-  @Prop({ required: true })
+  @Prop({ default: false })
   isNsfw: boolean;
 
-  @ApiProperty({ example: true })
   @Prop({ default: true })
   isActive: boolean;
 
-  @ApiProperty({ example: false })
   @Prop({ default: false })
   isDeleted: boolean;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
+
+CategorySchema.index({ isActive: 1, isDeleted: 1 });

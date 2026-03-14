@@ -11,6 +11,8 @@ import { CategoriesModule } from './categories/categories.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { PlansModule } from './plans/plans.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -31,8 +33,10 @@ import { AdminModule } from './admin/admin.module';
     CharactersModule,
     CategoriesModule,
     ConversationsModule,
+    PlansModule,
+    InvoicesModule,
     AuthModule,
-    AdminModule
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

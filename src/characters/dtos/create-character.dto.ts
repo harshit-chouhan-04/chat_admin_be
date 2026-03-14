@@ -1,69 +1,107 @@
-import { Transform } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsEnum,
+  IsMongoId,
+  IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
+  Min,
 } from 'class-validator';
 import { CHARACTER_VISIBILITY } from 'src/common/enums/character-visibility.enum';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  CharacterGender,
+  CharacterSexuality,
+} from '../entities/character.entity';
 
 export class CreateCharacterDto {
   @ApiProperty({ example: '67ca8e7d1d2b9f2c3a9c6e10' })
-  @IsString()
+  @IsMongoId()
   creator: string;
 
   @ApiProperty({ example: 'Riya' })
   @IsString()
+  @MaxLength(120)
   name: string;
 
-  @ApiPropertyOptional({ example: 'Sharmili · Romantic · Deep thinker' })
+  @ApiPropertyOptional({ example: 26 })
+  @Type(() => Number)
+  @IsOptional()
+  @IsNumber()
+  @Min(18)
+  age?: number;
+
+  @ApiPropertyOptional({ enum: CharacterGender })
+  @IsOptional()
+  @IsEnum(CharacterGender)
+  gender?: CharacterGender;
+
+  @ApiPropertyOptional({ enum: CharacterSexuality })
+  @IsOptional()
+  @IsEnum(CharacterSexuality)
+  sexuality?: CharacterSexuality;
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty({ example: 'Behave as a playful, empathetic character.' })
+  @ApiProperty()
   @IsString()
   personalityPrompt: string;
 
-  @ApiProperty({ example: 'You are roleplaying a virtual companion.' })
+  @ApiProperty()
   @IsString()
   systemPrompt: string;
 
-  @ApiProperty({
-    type: [String],
-    example: ['67ca8e7d1d2b9f2c3a9c6e11', '67ca8e7d1d2b9f2c3a9c6e12'],
-  })
-  @IsArray()
-  @IsString({ each: true })
-  categories: string[];
-
-  @ApiPropertyOptional({
-    example: '67ca8e7d1d2b9f2c3a9c6e11',
-    description: 'Deprecated: use categories[]',
-  })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  category?: string;
+  scenario?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  greetingMessage?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  conversationStyle?: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  categories?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  voiceModel?: string;
 
   @ApiPropertyOptional({ enum: CHARACTER_VISIBILITY })
   @IsOptional()
   @IsEnum(CHARACTER_VISIBILITY)
   visibility?: CHARACTER_VISIBILITY;
 
-  @ApiProperty({ example: false })
-  @Transform(({ value }) => value === 'true' || value === true)
+  @ApiPropertyOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsOptional()
   @IsBoolean()
-  isNsfw: boolean;
+  isNsfw?: boolean;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/riya.jpg' })
+  @ApiPropertyOptional()
+  @Transform(({ value }) => value === true || value === 'true')
   @IsOptional()
-  @IsString()
-  avatarUrl?: string;
-
-  @ApiPropertyOptional({ example: 'alloy' })
-  @IsOptional()
-  @IsString()
-  voiceModel?: string;
+  @IsBoolean()
+  isActive?: boolean;
 }

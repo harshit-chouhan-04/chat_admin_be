@@ -1,14 +1,6 @@
-// src/users/users.controller.ts
-import { Controller, Get, Param } from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
-import { Conversation } from 'src/conversations/entities/conversation.entity';
-
-import { User } from './entities/user.entity';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { QueryUsersDto } from './dtos/query-users.dto';
 import { UsersService } from './providers/users.service';
 
 @ApiTags('Users')
@@ -17,30 +9,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all users for admin review' })
-  @ApiOkResponse({
-    description: 'List of platform users',
-    type: [User],
-  })
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @Get(':id/chats')
-  @ApiOperation({ summary: 'Get all conversations for a selected user' })
-  @ApiParam({ name: 'id', type: String })
-  @ApiOkResponse({
-    description: 'List of user conversations',
-    type: [Conversation],
-  })
-  getUserChats(@Param('id') id: string) {
-    return this.usersService.getUserChats(id);
+  @ApiOperation({ summary: 'List users with pagination and search' })
+  findAll(@Query() query: QueryUsersDto) {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get user details by id' })
+  @ApiOperation({ summary: 'Get a user profile with stats' })
   @ApiParam({ name: 'id', type: String })
-  @ApiOkResponse({ description: 'User details', type: User })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }

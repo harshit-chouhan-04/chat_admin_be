@@ -6,19 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CharactersService } from './providers/characters.service';
-import { Public } from 'src/common/guards/no-auth.guard';
 import { CreateCharacterDto } from './dtos/create-character.dto';
+import { QueryCharactersDto } from './dtos/query-characters.dto';
 import { UpdateCharacterDto } from './dtos/update-character.dto';
-import {
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
-import { Character } from './entities/character.entity';
 
 @ApiTags('Characters')
 @Controller('characters')
@@ -26,57 +20,37 @@ export class CharactersController {
   constructor(private readonly charactersService: CharactersService) {}
 
   @Get()
-  @Public()
-  @ApiOperation({ summary: 'Get all public characters' })
-  @ApiOkResponse({ type: [Character] })
-  getAllPublicCharacters() {
-    return this.charactersService.getAllPublicCharacters();
-  }
-
-  @Get('all')
-  @ApiOperation({ summary: 'Get all characters (including private/inactive)' })
-  @ApiOkResponse({ type: [Character] })
-  getAllCharacters() {
-    return this.charactersService.getAllCharacters();
+  @ApiOperation({
+    summary: 'List characters with pagination, search, and filters',
+  })
+  findAll(@Query() query: QueryCharactersDto) {
+    return this.charactersService.findAll(query);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create character' })
-  @ApiCreatedResponse({ type: Character })
-  createCharacter(@Body() body: CreateCharacterDto) {
-    return this.charactersService.createCharacter(body);
+  @ApiOperation({ summary: 'Create a character' })
+  create(@Body() dto: CreateCharacterDto) {
+    return this.charactersService.create(dto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a character by id' })
+  @ApiParam({ name: 'id', type: String })
+  findOne(@Param('id') id: string) {
+    return this.charactersService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update character by id' })
+  @ApiOperation({ summary: 'Update a character' })
   @ApiParam({ name: 'id', type: String })
-  @ApiOkResponse({ type: Character })
-  updateCharacter(@Body() body: UpdateCharacterDto, @Param('id') id: string) {
-    return this.charactersService.updateCharacter(id, body);
+  update(@Param('id') id: string, @Body() dto: UpdateCharacterDto) {
+    return this.charactersService.update(id, dto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete character by id' })
+  @ApiOperation({ summary: 'Soft delete a character' })
   @ApiParam({ name: 'id', type: String })
-  @ApiOkResponse({ type: Character })
-  deleteCharacter(@Param('id') id: string) {
-    return this.charactersService.deleteCharacter(id);
-  }
-
-  @Post('seed/preset')
-  @ApiOperation({
-    summary: 'Seed preset characters with multi-category assignment',
-  })
-  @ApiOkResponse({
-    schema: {
-      example: {
-        requested: 6,
-        inserted: 6,
-        existing: 0,
-      },
-    },
-  })
-  seedPresetCharacters() {
-    return this.charactersService.seedPresetCharacters();
+  remove(@Param('id') id: string) {
+    return this.charactersService.remove(id);
   }
 }

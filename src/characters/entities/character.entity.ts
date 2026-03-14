@@ -1,166 +1,97 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { CHARACTER_VISIBILITY } from 'src/common/enums/character-visibility.enum';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export enum CHARACTER_GENDER {
+export enum CharacterGender {
   MALE = 'male',
   FEMALE = 'female',
   NON_BINARY = 'non_binary',
   OTHER = 'other',
 }
 
-export enum CHARACTER_SEXUALITY {
+export enum CharacterSexuality {
   STRAIGHT = 'straight',
   BISEXUAL = 'bisexual',
   GAY = 'gay',
   LESBIAN = 'lesbian',
   PANSEXUAL = 'pansexual',
+  ASEXUAL = 'asexual',
+  OTHER = 'other',
 }
+
+export type CharacterDocument = HydratedDocument<Character>;
 
 @Schema({ timestamps: true })
 export class Character {
-  @ApiProperty({ example: '67ca8e7d1d2b9f2c3a9c6e10' })
-  @Prop({ required: true, ref: 'User' })
-  creator: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  creator: Types.ObjectId;
 
-  @ApiProperty({ example: 'Riya' })
-  @Prop({ required: true })
+  @Prop({ required: true, trim: true, index: true })
   name: string;
 
-  @ApiProperty({ example: 'riya' })
-  @Prop({ unique: true })
+  @Prop({ required: true, unique: true, lowercase: true, trim: true })
   slug: string;
 
-  // NEW: Age
-  @ApiProperty({ example: 26 })
-  @Prop({ required: true })
-  age: number;
+  @Prop({ min: 18 })
+  age?: number;
 
-  // NEW: Gender
-  @ApiProperty({
-    enum: CHARACTER_GENDER,
-    example: CHARACTER_GENDER.FEMALE,
-  })
-  @Prop({
-    required: true,
-    enum: CHARACTER_GENDER,
-    type: String,
-  })
-  gender: CHARACTER_GENDER;
+  @Prop({ type: String, enum: CharacterGender })
+  gender?: CharacterGender;
 
-  // NEW: Sexuality
-  @ApiProperty({
-    enum: CHARACTER_SEXUALITY,
-    example: CHARACTER_SEXUALITY.STRAIGHT,
-  })
-  @Prop({
-    required: true,
-    enum: CHARACTER_SEXUALITY,
-    type: String,
-  })
-  sexuality: CHARACTER_SEXUALITY;
+  @Prop({ type: String, enum: CharacterSexuality })
+  sexuality?: CharacterSexuality;
 
-  @ApiPropertyOptional({ example: 'Sharmili · Romantic · Deep thinker' })
   @Prop()
-  description: string;
+  description?: string;
 
-  @ApiProperty({ example: 'Behave as a playful, empathetic character.' })
   @Prop({ required: true })
   personalityPrompt: string;
 
-  @ApiProperty({ example: 'You are roleplaying a virtual companion.' })
   @Prop({ required: true })
   systemPrompt: string;
 
-  @ApiProperty({
-    type: [String],
-    example: ['67ca8e7d1d2b9f2c3a9c6e11', '67ca8e7d1d2b9f2c3a9c6e12'],
-  })
-  @Prop({ required: true, ref: 'Category', type: [String], default: [] })
-  categories: string[];
+  @Prop()
+  scenario?: string;
 
-  @ApiProperty({
-    enum: CHARACTER_VISIBILITY,
-    example: CHARACTER_VISIBILITY.PUBLIC,
-  })
+  @Prop()
+  greetingMessage?: string;
+
+  @Prop()
+  conversationStyle?: string;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Category' }], default: [] })
+  categories: Types.ObjectId[];
+
+  @Prop()
+  avatarUrl?: string;
+
+  @Prop()
+  voiceModel?: string;
+
   @Prop({
-    required: true,
+    type: String,
     enum: CHARACTER_VISIBILITY,
     default: CHARACTER_VISIBILITY.PUBLIC,
-    type: String,
   })
   visibility: CHARACTER_VISIBILITY;
 
-  @ApiProperty({ example: false })
-  @Prop({ required: true })
+  @Prop({ default: false })
   isNsfw: boolean;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/riya.jpg' })
-  @Prop()
-  avatarUrl: string;
-
-  @ApiPropertyOptional({ example: 'alloy' })
-  @Prop()
-  voiceModel: string;
-
-  @ApiPropertyOptional({
-    example:
-      'It is late at night. The house is quiet and you are chatting privately online.',
-  })
-  @Prop()
-  scenario: string;
-
-  @ApiPropertyOptional({
-    example: 'Hey… it’s pretty quiet tonight. What are you doing awake?',
-  })
-  @Prop()
-  greetingMessage: string;
-
-  @ApiPropertyOptional({
-    example:
-      'Playful teasing, emotional curiosity, natural texting style responses.',
-  })
-  @Prop()
-  conversationStyle: string;
-
-  @ApiPropertyOptional({
-    example: [
-      {
-        user: 'What are you doing?',
-        character: 'Just relaxing… nights like this feel strangely peaceful.',
-      },
-    ],
-  })
-  @Prop({
-    type: [
-      {
-        user: String,
-        character: String,
-      },
-    ],
-    default: [],
-  })
-  exampleDialogues: { user: string; character: string }[];
-
-  @ApiProperty({ type: [String], example: [] })
-  @Prop({ type: [String], default: [], ref: 'Conversation' })
-  chats: string[];
-
-  @ApiProperty({ example: 0 })
-  @Prop({ default: 0 })
+  @Prop({ default: 0, min: 0 })
   rating: number;
 
-  @ApiProperty({ example: 0 })
-  @Prop({ default: 0 })
+  @Prop({ default: 0, min: 0 })
   ratingCount: number;
 
-  @ApiProperty({ example: true })
   @Prop({ default: true })
   isActive: boolean;
 
-  @ApiProperty({ example: false })
   @Prop({ default: false })
   isDeleted: boolean;
 }
 
 export const CharacterSchema = SchemaFactory.createForClass(Character);
+
+CharacterSchema.index({ creator: 1, isDeleted: 1 });
+CharacterSchema.index({ categories: 1, isActive: 1, isNsfw: 1 });

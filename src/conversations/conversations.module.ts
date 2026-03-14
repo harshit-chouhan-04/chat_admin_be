@@ -1,33 +1,27 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  Character,
+  CharacterSchema,
+} from 'src/characters/entities/character.entity';
+import { Message, MessageSchema } from 'src/messages/entities/message.entity';
 import { ConversationsController } from './conversations.controller';
-import { ConversationsService } from './providers/conversations.service';
 import {
   Conversation,
   ConversationSchema,
 } from './entities/conversation.entity';
-import { MongooseModule } from '@nestjs/mongoose';
-import { MessagesModule } from 'src/messages/messages.module';
-import { CharactersModule } from 'src/characters/characters.module';
-import { AI_STREAMER } from './ai/ai-streamer';
-import { OpenRouterAiStreamerService } from './ai/openrouter-ai-streamer.service';
+import { ConversationsService } from './providers/conversations.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Conversation.name, schema: ConversationSchema },
+      { name: Message.name, schema: MessageSchema },
+      { name: Character.name, schema: CharacterSchema },
     ]),
-    MessagesModule,
-    CharactersModule,
   ],
   controllers: [ConversationsController],
-  providers: [
-    ConversationsService,
-    OpenRouterAiStreamerService,
-    {
-      provide: AI_STREAMER,
-      useExisting: OpenRouterAiStreamerService,
-    },
-  ],
-  exports: [MongooseModule],
+  providers: [ConversationsService],
+  exports: [ConversationsService, MongooseModule],
 })
 export class ConversationsModule {}

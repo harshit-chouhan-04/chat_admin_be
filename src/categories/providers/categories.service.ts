@@ -1,154 +1,129 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCategoryDto } from '../dtos/create-category.dto';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Category } from '../entities/category.entity';
 import { Model } from 'mongoose';
+import {
+  buildSort,
+  createPaginatedResponse,
+  escapeRegex,
+  getPagination,
+} from 'src/common/utils/query.util';
+import { CreateCategoryDto } from '../dtos/create-category.dto';
+import { QueryCategoriesDto } from '../dtos/query-categories.dto';
 import { UpdateCategoryDto } from '../dtos/update-category.dto';
-
-const PRESET_CATEGORY_NAMES = [
-  'Bisexual',
-  'Female',
-  'Femboy',
-  'Gay',
-  'Male',
-  'Trans',
-  'BDSM',
-  'DILF',
-  'FemDom',
-  'MILF',
-  'Mature',
-  'Alien',
-  'Babysitter',
-  'Bondage',
-  'Casting',
-  'Celebrity',
-  'Cheating',
-  'Cuckold',
-  'Doctor',
-  'Elf',
-  'Exhibitionism',
-  'Fantasy',
-  'Feet',
-  'Foot fetish',
-  'Frotteurism',
-  'Harassment',
-  'Hentai',
-  'Husband',
-  'Lover',
-  'Maid',
-  'Massage',
-  'Mistress',
-  'Mystic',
-  'Neighbour',
-  'Nun',
-  'Old',
-  'Party',
-  'Peeking',
-  'Pegging',
-  'Public sex',
-  'Punishment',
-  'Robber',
-  'Sleeping',
-  'Stepdaughter',
-  'Stepmom',
-  'Stepsister',
-  'Stranger',
-  'Student',
-  'Teacher',
-  'Tentacle',
-  'Threesome',
-  'Virgin',
-  'Voyeurism',
-  'Wife',
-  'Young',
-  'Dominant',
-  'Drunk',
-  'Naive',
-  'Quite',
-  'Rude',
-  'Submissive',
-  'African',
-  'Arab',
-  'Asian',
-  'Indian',
-  'Japanese',
-  'Latina',
-  'Latino',
-  'Big ass',
-  'Big cock',
-  'Big tits',
-  'Black hair',
-  'Black skin',
-  'Blonde',
-  'Brunette',
-  'Muscular',
-  'Red hair',
-  'Small tits',
-  'Dormitory',
-  'Nightclub',
-  'School',
-  'Swimming pool',
-] as const;
+import { Category } from '../entities/category.entity';
 
 @Injectable()
 export class CategoriesService {
   constructor(
-    @InjectModel(Category.name) private categoryModel: Model<Category>,
+    @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
   ) {}
 
-  createCategory(body: CreateCategoryDto) {
-    const payload = {
-      ...body,
-      slug: body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    };
-    return this.categoryModel.create(payload);
-  }
-  getAllActiveCategories() {
-    return this.categoryModel.find({ isActive: true, isDeleted: false });
-  }
-  getAllCategories() {
-    return this.categoryModel.find({ isDeleted: false });
-  }
-  updateCategory(id: string, body: UpdateCategoryDto) {
-    return this.categoryModel.findByIdAndUpdate(id, body, { new: true });
-  }
-  deleteCategory(id: string) {
-    return this.categoryModel.findByIdAndUpdate(
-      id,
-      { isDeleted: true },
-      { new: true },
-    );
+  async create(dto: CreateCategoryDto) {
+    const slug = this.toSlug(dto.name);
+    const exists = await this.categoryModel.exists({
+      $or: [{ name: dto.name }, { slug }],
+    });
+
+    if (exists) {
+      throw new ConflictException('Category already exists');
+    }
+
+    const category = await this.categoryModel.create({
+      ...dto,
+      slug,
+      isActive: dto.isActive ?? true,
+      isNsfw: dto.isNsfw ?? false,
+    });
+
+    return category.toObject();
   }
 
-  async seedPresetCategories() {
-    const operations = PRESET_CATEGORY_NAMES.map((name) => {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  async findAll(query: QueryCategoriesDto) {
+    const filter: Record<string, unknown> = { isDeleted: false };
 
-      return {
-        updateOne: {
-          filter: { slug },
-          update: {
-            $setOnInsert: {
-              name,
-              slug,
-              isNsfw: true,
-              isActive: true,
-              isDeleted: false,
-            },
-          },
-          upsert: true,
+    if (query.search?.trim()) {
+      const regex = new RegExp(escapeRegex(query.search.trim()), 'i');
+      filter.$or = [{ name: regex }, { slug: regex }];
+    }
+    if (query.isActive !== undefined) {
+      filter.isActive = query.isActive;
+    }
+    if (query.isNsfw !== undefined) {
+      filter.isNsfw = query.isNsfw;
+    }
+
+    const { skip, limit } = getPagination(query);
+    const [data, total] = await Promise.all([
+      this.categoryModel
+        .find(filter)
+        .sort(buildSort(query.sort, query.order))
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.categoryModel.countDocuments(filter),
+    ]);
+
+    return createPaginatedResponse(data, total, query);
+  }
+
+  async findOne(id: string) {
+    const category = await this.categoryModel
+      .findOne({ _id: id, isDeleted: false })
+      .lean();
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category;
+  }
+
+  async update(id: string, dto: UpdateCategoryDto) {
+    const updatePayload: Record<string, unknown> = { ...dto };
+    if (dto.name) {
+      updatePayload.slug = this.toSlug(dto.name);
+    }
+
+    const category = await this.categoryModel
+      .findOneAndUpdate({ _id: id, isDeleted: false }, updatePayload, {
+        new: true,
+      })
+      .lean();
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category;
+  }
+
+  async remove(id: string) {
+    const category = await this.categoryModel
+      .findOneAndUpdate(
+        { _id: id, isDeleted: false },
+        { isDeleted: true },
+        {
+          new: true,
         },
-      };
-    });
+      )
+      .lean();
 
-    const result = await this.categoryModel.bulkWrite(operations, {
-      ordered: false,
-    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
 
-    return {
-      requested: PRESET_CATEGORY_NAMES.length,
-      inserted: result.upsertedCount ?? 0,
-      existing: PRESET_CATEGORY_NAMES.length - (result.upsertedCount ?? 0),
-    };
+    return category;
+  }
+
+  private toSlug(value: string) {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }
