@@ -31,6 +31,17 @@
 $ npm install
 ```
 
+## Environment variables
+
+Create a `.env` file from `.env.example` and update the MongoDB values as needed.
+
+```bash
+MONGODB_URI=mongodb://127.0.0.1:27017/chat_admin
+MONGODB_DB_NAME=chat_admin
+JWT_SECRET=change-me
+JWT_EXPIRES_IN=30d
+```
+
 ## Compile and run the project
 
 ```bash
@@ -43,6 +54,10 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+Swagger UI is available at `http://localhost:3000/api-docs` after the app starts.
+
+Use `POST /auth/login` to obtain an admin JWT, then send it as `Authorization: Bearer <token>` for protected routes.
 
 ## Run tests
 

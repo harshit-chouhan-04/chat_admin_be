@@ -1,0 +1,5 @@
+export enum SENDER_TYPE {
+  USER = 'USER',
+  CHARACTER = 'CHARACTER',
+  SYSTEM = 'SYSTEM',
+}
