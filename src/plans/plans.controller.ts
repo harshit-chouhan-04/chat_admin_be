@@ -13,6 +13,7 @@ import { CreatePlanDto } from './dtos/create-plan.dto';
 import { QueryPlansDto } from './dtos/query-plans.dto';
 import { UpdatePlanDto } from './dtos/update-plan.dto';
 import { PlansService } from './providers/plans.service';
+import { Public } from 'src/common/guards/no-auth.guard';
 
 @ApiTags('Plans')
 @Controller('plans')
@@ -29,6 +30,12 @@ export class PlansController {
   @ApiOperation({ summary: 'Create a plan' })
   create(@Body() dto: CreatePlanDto) {
     return this.plansService.create(dto);
+  }
+  @Public()
+  @Post('seed')
+  @ApiOperation({ summary: 'Seed 3 default plans (idempotent)' })
+  seedDefaults() {
+    return this.plansService.seedDefaults();
   }
 
   @Get(':id')

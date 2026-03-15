@@ -32,6 +32,9 @@ export class Plan {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);

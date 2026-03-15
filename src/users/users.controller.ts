@@ -32,6 +32,7 @@ export class UsersController {
     return this.usersService.updateNumberOfMessageLeft(
       id,
       dto.numberOfMessageLeft,
+      dto.planId,
     );
   }
 }

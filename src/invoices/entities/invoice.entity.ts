@@ -32,6 +32,12 @@ export class Invoice {
   @Prop({ required: true, min: 0 })
   amount: number;
 
+  @Prop({ required: true, min: 0 })
+  numberOfMessages: number;
+
+  @Prop({ required: true, min: 0 })
+  credits: number;
+
   @Prop({ required: true, uppercase: true, trim: true })
   currency: string;
 
