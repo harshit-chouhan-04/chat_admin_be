@@ -120,6 +120,18 @@ export class UsersService {
     };
   }
 
+  async updateNumberOfMessageLeft(id: string, numberOfMessageLeft: number) {
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { numberOfMessageLeft }, { new: true })
+      .lean();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
   updateById(id: string, data: Partial<User>) {
     return this.userModel.findByIdAndUpdate(id, data, { new: true }).lean();
   }

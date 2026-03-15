@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { QueryUsersDto } from './dtos/query-users.dto';
+import { UpdateNumberOfMessageLeftDto } from './dtos/update-number-of-message-left.dto';
 import { UsersService } from './providers/users.service';
 
 @ApiTags('Users')
@@ -19,5 +20,18 @@ export class UsersController {
   @ApiParam({ name: 'id', type: String })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
+  }
+
+  @Patch(':id/number-of-message-left')
+  @ApiOperation({ summary: 'Update number of messages left for a user' })
+  @ApiParam({ name: 'id', type: String })
+  updateNumberOfMessageLeft(
+    @Param('id') id: string,
+    @Body() dto: UpdateNumberOfMessageLeftDto,
+  ) {
+    return this.usersService.updateNumberOfMessageLeft(
+      id,
+      dto.numberOfMessageLeft,
+    );
   }
 }
