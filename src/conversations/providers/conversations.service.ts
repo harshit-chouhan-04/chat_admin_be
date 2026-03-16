@@ -68,7 +68,15 @@ export class ConversationsService {
       throw new NotFoundException('Conversation not found');
     }
 
-    return conversation;
+    const messages = await this.messageModel
+      .find({ conversation: id })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return {
+      ...conversation,
+      messages,
+    };
   }
 
   async getMessages(conversationId: string) {
