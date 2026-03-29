@@ -8,7 +8,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { BillingCycle } from '../entities/plan.entity';
+import { BillingCycle, PlanType } from '../entities/plan.entity';
 
 export class CreatePlanDto {
   @ApiProperty()
@@ -24,6 +24,10 @@ export class CreatePlanDto {
   @ApiProperty({ enum: BillingCycle })
   @IsEnum(BillingCycle)
   billingCycle: BillingCycle;
+
+  @ApiProperty({ enum: PlanType })
+  @IsEnum(PlanType)
+  type: PlanType;
 
   @ApiProperty()
   @Type(() => Number)

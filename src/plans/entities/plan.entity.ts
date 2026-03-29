@@ -8,6 +8,10 @@ export enum BillingCycle {
   ONE_TIME = 'one_time',
 }
 
+export enum PlanType {
+  NORMAl = 'normal',
+  TOP_UP = 'top_up',
+}
 export type PlanDocument = HydratedDocument<Plan>;
 
 @Schema({ timestamps: true })
@@ -27,11 +31,22 @@ export class Plan {
   @Prop({ required: true, min: 0 })
   messageLimit: number;
 
+  @Prop({
+    required: true,
+    type: String,
+    enum: PlanType,
+    default: PlanType.NORMAl,
+  })
+  type: PlanType;
+
   @Prop()
   description?: string;
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: false })
+  isPopular: boolean;
 
   @Prop({ default: false })
   isDeleted: boolean;

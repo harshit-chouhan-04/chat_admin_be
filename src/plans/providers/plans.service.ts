@@ -10,56 +10,337 @@ import {
 import { CreatePlanDto } from '../dtos/create-plan.dto';
 import { QueryPlansDto } from '../dtos/query-plans.dto';
 import { UpdatePlanDto } from '../dtos/update-plan.dto';
-import { BillingCycle, Plan } from '../entities/plan.entity';
+import { BillingCycle, Plan, PlanType } from '../entities/plan.entity';
 
 @Injectable()
 export class PlansService {
   constructor(
     @InjectModel(Plan.name) private readonly planModel: Model<Plan>,
   ) {}
+  setPlanTypeToNormalForExistingPlans() {
+    return this.planModel.updateMany(
+      { isPopular: { $exists: false } },
+      { $set: { isPopular: false } },
+    );
+  }
 
   async seedDefaults() {
     const defaults: Array<{
+      _id: string;
       name: string;
       price: number;
       billingCycle: BillingCycle;
+      type: PlanType;
       credits: number;
       messageLimit: number;
       description: string;
       isActive: boolean;
       isDeleted: boolean;
+      isPopular: boolean;
     }> = [
       {
-        name: 'Basic',
+        _id: '69c966301255554ffb1c5091',
+        name: 'Baatein Shuru',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 39,
+        messageLimit: 100,
+        credits: 0,
+        description: '100 message top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5092',
+        name: 'Dil Ki Baatein',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 149,
+        messageLimit: 500,
+        credits: 0,
+        description: '500 message top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5093',
+        name: 'Raat Bhar Baatein',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 499,
+        messageLimit: 2000,
+        credits: 0,
+        description: '2000 message top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5094',
+        name: 'NonStop Baatein',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 999,
+        messageLimit: 5000,
+        credits: 0,
+        description: '5000 message top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5095',
+        name: 'Jhalak',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 59,
+        messageLimit: 0,
+        credits: 10,
+        description: '10 image top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5096',
+        name: 'Nazara',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 129,
+        messageLimit: 0,
+        credits: 25,
+        description: '25 image top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5097',
+        name: 'Deewangi',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 399,
+        messageLimit: 0,
+        credits: 100,
+        description: '100 image top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5098',
+        name: 'Beintehaa',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 999,
+        messageLimit: 0,
+        credits: 300,
+        description: '300 image top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69c966301255554ffb1c5099',
+        name: 'Beintehaa Max',
+        type: PlanType.TOP_UP,
+        billingCycle: BillingCycle.ONE_TIME,
+        price: 2999,
+        messageLimit: 0,
+        credits: 1000,
+        description: '1000 image top-up',
+        isActive: true,
+        isDeleted: false,
+        isPopular: false,
+      },
+      {
+        _id: '69b66ac618eab82f457479ab',
+        name: 'Shuruaat',
         price: 99,
         billingCycle: BillingCycle.ONE_TIME,
-        credits: 20,
+        type: PlanType.NORMAl,
+        credits: 10,
         messageLimit: 120,
-        description: 'Basic one-time plan',
+        description: 'Shuruaat one-time plan',
         isActive: true,
         isDeleted: false,
+        isPopular: false,
       },
       {
-        name: 'Pro',
+        _id: '69b66ac618eab82f457479ac',
+        name: 'Masti',
         price: 299,
         billingCycle: BillingCycle.ONE_TIME,
-        credits: 40,
+        type: PlanType.NORMAl,
+        credits: 30,
         messageLimit: 420,
-        description: 'Pro one-time plan',
+        description: 'Masti one-time plan',
         isActive: true,
         isDeleted: false,
+        isPopular: true,
       },
       {
-        name: 'Plus',
+        _id: '69b66ac618eab82f457479ad',
+        name: 'Beintehaa',
         price: 699,
         billingCycle: BillingCycle.ONE_TIME,
-        credits: 80,
+        type: PlanType.NORMAl,
+        credits: 60,
         messageLimit: 1000,
-        description: 'Plus one-time plan',
+        description: 'Beintehaa one-time plan',
         isActive: true,
         isDeleted: false,
+        isPopular: false,
       },
     ];
+    // [
+    //   {
+    //     name: 'Baatein Shuru',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 39,
+    //     messageLimit: 100,
+    //     credits: 0,
+    //     description: '100 message top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Dil Ki Baatein',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 149,
+    //     messageLimit: 500,
+    //     credits: 0,
+    //     description: '500 message top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Raat Bhar Baatein',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 499,
+    //     messageLimit: 2000,
+    //     credits: 0,
+    //     description: '2000 message top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'NonStop Baatein',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 999,
+    //     messageLimit: 5000,
+    //     credits: 0,
+    //     description: '5000 message top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Jhalak',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 59,
+    //     messageLimit: 0,
+    //     credits: 10,
+    //     description: '10 image top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Nazara',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 129,
+    //     messageLimit: 0,
+    //     credits: 25,
+    //     description: '25 image top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Deewangi',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 399,
+    //     messageLimit: 0,
+    //     credits: 100,
+    //     description: '100 image top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Beintehaa',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 999,
+    //     messageLimit: 0,
+    //     credits: 300,
+    //     description: '300 image top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Beintehaa Max',
+    //     type: PlanType.TOP_UP,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     price: 2999,
+    //     messageLimit: 0,
+    //     credits: 1000,
+    //     description: '1000 image top-up',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Shuruaat',
+    //     price: 99,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     type: PlanType.NORMAl,
+    //     credits: 10,
+    //     messageLimit: 120,
+    //     description: 'Shuruaat one-time plan',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Masti',
+    //     price: 299,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     type: PlanType.NORMAl,
+    //     credits: 30,
+    //     messageLimit: 420,
+    //     description: 'Masti one-time plan',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    //   {
+    //     name: 'Beintehaa',
+    //     price: 699,
+    //     billingCycle: BillingCycle.ONE_TIME,
+    //     type: PlanType.NORMAl,
+    //     credits: 60,
+    //     messageLimit: 1000,
+    //     description: 'Beintehaa one-time plan',
+    //     isActive: true,
+    //     isDeleted: false,
+    //     isPopular: false,
+    //   },
+    // ];
 
     const names = defaults.map((p) => p.name);
     const before = await this.planModel.countDocuments({
@@ -69,8 +350,8 @@ export class PlansService {
     await this.planModel.bulkWrite(
       defaults.map((plan) => ({
         updateOne: {
-          filter: { name: plan.name },
-          update: { $setOnInsert: plan },
+          filter: { _id: plan._id },
+          update: { $set: plan },
           upsert: true,
         },
       })),
@@ -78,7 +359,7 @@ export class PlansService {
     );
 
     const afterPlans = await this.planModel
-      .find({ name: { $in: names } })
+      .find({ _id: { $in: defaults.map((p) => p._id) } })
       .sort({ price: 1 })
       .lean();
 

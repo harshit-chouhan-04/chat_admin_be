@@ -36,6 +36,7 @@ export class PlansController {
   @ApiOperation({ summary: 'Seed 3 default plans (idempotent)' })
   seedDefaults() {
     return this.plansService.seedDefaults();
+    // return this.plansService.setPlanTypeToNormalForExistingPlans();
   }
 
   @Get(':id')
