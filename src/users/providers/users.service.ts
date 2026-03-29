@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -149,46 +153,52 @@ export class UsersService {
     numberOfMessageLeft: number,
     planId?: string,
   ) {
+    if (!planId) {
+      throw new BadRequestException('Plan ID is required');
+    }
+    const plan = await this.planModel.findById(planId).lean();
+    if (!plan) {
+      throw new NotFoundException('Plan not found');
+    }
     const user = await this.userModel
-      .findByIdAndUpdate(id, { numberOfMessageLeft }, { new: true })
+      .findByIdAndUpdate(
+        id,
+        {
+          $inc: {
+            numberOfMessageLeft: plan.messageLimit,
+            credits: plan.credits,
+          },
+        },
+        { new: true },
+      )
       .lean();
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (planId) {
-      const plan = await this.planModel.findById(planId).lean();
-      if (!plan) {
-        throw new NotFoundException('Plan not found');
-      }
+    const paidAt = new Date();
 
-      const paidAt = new Date();
+    // invoiceId must include digits derived from the Mongo _id, so we create first,
+    // then update invoiceId once _id exists.
+    const created = await this.invoiceModel.create({
+      invoiceId: `TMP_${Date.now()}_${randomUUID().replace(/-/g, '')}`,
+      user: user._id,
+      plan: plan._id,
+      amount: plan.price,
+      numberOfMessages: plan.messageLimit,
+      credits: plan.credits,
+      currency: 'INR',
+      status: InvoiceStatus.PAID,
+      paymentProvider: PaymentProvider.OTHER,
+      paidAt,
+    });
 
-      // invoiceId must include digits derived from the Mongo _id, so we create first,
-      // then update invoiceId once _id exists.
-      const created = await this.invoiceModel.create({
-        invoiceId: `TMP_${Date.now()}_${randomUUID().replace(/-/g, '')}`,
-        user: user._id,
-        plan: plan._id,
-        amount: plan.price,
-        numberOfMessages: numberOfMessageLeft,
-        credits: plan.credits,
-        currency: 'INR',
-        status: InvoiceStatus.PAID,
-        paymentProvider: PaymentProvider.OTHER,
-        paidAt,
-      });
-
-      const finalInvoiceId = this.formatInvoiceIdFromMongoId(
-        created._id,
-        paidAt,
-      );
-      await this.invoiceModel.updateOne(
-        { _id: created._id },
-        { $set: { invoiceId: finalInvoiceId } },
-      );
-    }
+    const finalInvoiceId = this.formatInvoiceIdFromMongoId(created._id, paidAt);
+    await this.invoiceModel.updateOne(
+      { _id: created._id },
+      { $set: { invoiceId: finalInvoiceId } },
+    );
 
     return user;
   }
