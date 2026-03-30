@@ -16,6 +16,7 @@ import { PlansModule } from './plans/plans.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { SharedModule } from './shared/shared.module';
 import { AuthGuard } from './common/guards/auth.guard';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AuthGuard } from './common/guards/auth.guard';
     PlansModule,
     InvoicesModule,
     SharedModule,
+    DashboardModule,
     AuthModule,
     AdminModule,
   ],
