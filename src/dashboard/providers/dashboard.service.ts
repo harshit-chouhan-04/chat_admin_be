@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Character } from 'src/characters/entities/character.entity';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
 import { Invoice, InvoiceStatus } from 'src/invoices/entities/invoice.entity';
 import { Message } from 'src/messages/entities/message.entity';
@@ -20,8 +19,6 @@ type MetricSnapshot = {
 export class DashboardService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    @InjectModel(Character.name)
-    private readonly characterModel: Model<Character>,
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<Conversation>,
     @InjectModel(Message.name) private readonly messageModel: Model<Message>,
@@ -35,9 +32,9 @@ export class DashboardService {
       totalUsers,
       currentUsers,
       prevUsers,
-      totalCharacters,
-      currentCharacters,
-      prevCharacters,
+      totalCost,
+      currentCost,
+      prevCost,
       totalConversations,
       currentConversations,
       prevConversations,
@@ -54,15 +51,9 @@ export class DashboardService {
         createdAt: { $gte: prevStart, $lt: prevEnd },
       }),
 
-      this.characterModel.countDocuments({ isDeleted: false }),
-      this.characterModel.countDocuments({
-        isDeleted: false,
-        createdAt: { $gte: start, $lt: end },
-      }),
-      this.characterModel.countDocuments({
-        isDeleted: false,
-        createdAt: { $gte: prevStart, $lt: prevEnd },
-      }),
+      this.sumMessageCost({}),
+      this.sumMessageCost({ createdAt: { $gte: start, $lt: end } }),
+      this.sumMessageCost({ createdAt: { $gte: prevStart, $lt: prevEnd } }),
 
       this.conversationModel.countDocuments({}),
       this.conversationModel.countDocuments({
@@ -94,11 +85,7 @@ export class DashboardService {
       },
       metrics: {
         totalUsers: this.snapshot(totalUsers, currentUsers, prevUsers),
-        totalCharacters: this.snapshot(
-          totalCharacters,
-          currentCharacters,
-          prevCharacters,
-        ),
+        totalCost: this.snapshot(totalCost, currentCost, prevCost),
         totalConversations: this.snapshot(
           totalConversations,
           currentConversations,
@@ -341,6 +328,21 @@ export class DashboardService {
     const agg = await this.invoiceModel.aggregate<{ total: number }>([
       { $match: match },
       { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+
+    return agg[0]?.total ?? 0;
+  }
+
+  private async sumMessageCost(
+    extraMatch: Record<string, unknown>,
+  ): Promise<number> {
+    const match: Record<string, unknown> = {
+      ...extraMatch,
+    };
+
+    const agg = await this.messageModel.aggregate<{ total: number }>([
+      { $match: match },
+      { $group: { _id: null, total: { $sum: '$cost' } } },
     ]);
 
     return agg[0]?.total ?? 0;
